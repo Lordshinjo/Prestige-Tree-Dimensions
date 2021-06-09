@@ -1,6 +1,6 @@
 let modInfo = {
 	name: "The Prestige Tree: Dimensional Respecced",
-	id: "ptdim",
+	id: "ptdim-tmtmodernplus",
 	author: "qq1010903229 (loader3229)",
 	pointsName: "points",
 	discordName: "",
@@ -12,12 +12,17 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "1.0.6",
+	num: "1.0.6+tmt-modern-plus-1.0.0",
 	name: "The Imperium Update",
 }
 
 let changelog = `
-
+<h1>TMT Modern Plus Changelog:</h1><br>
+	<h3>v1.0.0</h3><br>
+	- Upgraded to TMT 2.6.1<br>
+	- Added subtabs to most layers<br>
+	- Layers will now highlight green if a dimension can be bought<br>
+<br>
 
 <h1>Changelog:</h1><br>
 	<h3>v1.0.6</h3><br>

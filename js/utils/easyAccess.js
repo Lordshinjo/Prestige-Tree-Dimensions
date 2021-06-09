@@ -1,3 +1,14 @@
+function isAnyUpgradeAvailable(layer) {
+	for (id in tmp[layer].upgrades){
+		if (isPlainObject(layers[layer].upgrades[id])){
+			if (canAffordUpgrade(layer, id) && !hasUpgrade(layer, id) && tmp[layer].upgrades[id].unlocked){
+				return true
+			}
+		}
+	}
+	return false
+}
+
 function hasUpgrade(layer, id) {
 	return ((player[layer].upgrades.includes(toNumber(id)) || player[layer].upgrades.includes(id.toString())) && !tmp[layer].deactivated)
 }

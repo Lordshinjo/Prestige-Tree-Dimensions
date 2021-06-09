@@ -60,7 +60,7 @@ addLayer("p", {
 		return ret;
 	},
 	buyables: {
-            rows: 4,
+            rows: 5,
             cols: 2,
             11: {
                 title: "1st Prestige Dimension", // Optional, displayed at the top in a larger font
@@ -721,14 +721,41 @@ addLayer("p", {
 				unlocked() { return player.h.challenges[22]>=2 && player.inf.points.gte(4) },
 			},
 		},
-	tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",function(){return "Dimensional Base: "+format(tmp.p.dimensionalBase)}],
-					"buyables",
-					["buyable",51],
-                   "upgrades"],
-				   
+	tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("p")
+            }
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "Dimensional Base: "+format(tmp.p.dimensionalBase)}],
+                "buyables",
+            ],
+            glowColor: "green",
+            shouldNotify() {
+                if (!hasMilestone("g", 3)) {
+                    for (let row = 1; row < 5; row++) {
+                        if (canBuyBuyable("p", row * 10 + 1) || canBuyBuyable("p", row * 10 + 2)) return true
+                    }
+                }
+                if (!hasUpgrade("p", 52) && canBuyBuyable("p", 51)) return true
+                return false
+            }
+        },
+    },
 		doReset(l){
 			if(l=="p"){return;}
 			if(l=="b" || l=="g"){
@@ -1197,17 +1224,68 @@ addLayer("b", {
 		 effect=effect.mul(clickableEffect("m",11));
 		 return effect;
 	 },
-	 	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",function(){return "Dimensional Base: "+format(tmp.b.dimensionalBase)}],
-					["display-text",
-                        function() {if(hasUpgrade("t",23))return 'You have ' + format(player.b.boost) + ' Booster Boosts, which adds Booster base by ' + format(tmp.b.boostEffect);return ""},
-                        {}],
-						"buyables",
-						["buyable",51],
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(hasUpgrade("t",23))return 'You have ' + format(player.b.boost) + ' Booster Boosts, which adds Booster base by ' + format(tmp.b.boostEffect);return ""},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("b")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(hasUpgrade("t",23))return 'You have ' + format(player.b.boost) + ' Booster Boosts, which adds Booster base by ' + format(tmp.b.boostEffect);return ""},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(hasUpgrade("t",23))return 'You have ' + format(player.b.boost) + ' Booster Boosts, which adds Booster base by ' + format(tmp.b.boostEffect);return ""},
+                    {}
+                ],
+                ["display-text",function(){return "Dimensional Base: "+format(tmp.b.dimensionalBase)}],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.b.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("t", 3)) {
+                    for (let row = 1; row < 5; row++) {
+                        if (canBuyBuyable("b", row * 10 + 1) || canBuyBuyable("b", row * 10 + 2)) return true
+                    }
+                }
+                // Galaxy always gets autobought
+                return false
+            }
+        },
+    },
 	 hotkeys: [
            {key: "b", description: "B: Booster reset", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
      ],
@@ -1306,7 +1384,7 @@ addLayer("b", {
 			}
 	 },
 	buyables: {
-            rows: 4,
+            rows: 5,
             cols: 2,
             11: {
                 title: "1st Booster Dimension", // Optional, displayed at the top in a larger font
@@ -1813,22 +1891,92 @@ addLayer("g", {
 		let eff = power.add(1).pow(tmp.g.getGenPowerEffExp);
 		return eff
 	},
-	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",function(){return "Dimensional Base: "+format(tmp.g.dimensionalBase)}],
-                    ["display-text",
-                        function() {
-							if(player.inf.points.gte(2))return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st-2nd Prestige Dimensions by ' + format(tmp.g.getGenPowerEff)
-							return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st Prestige Dimension by ' + format(tmp.g.getGenPowerEff);
-						},
-                        {}],["display-text",
-                        function() {return 'You have ' + format(player.g.extra) + ' Extra Generators, which are generating '+format(tmp.g.extraeffect)+' Generator Power/sec'},
-                        {}],
-						"buyables",
-						["buyable",51],
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {
+                        if(player.inf.points.gte(2))return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st-2nd Prestige Dimensions by ' + format(tmp.g.getGenPowerEff)
+                        return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st Prestige Dimension by ' + format(tmp.g.getGenPowerEff);
+                    },
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.g.extra) + ' Extra Generators, which are generating '+format(tmp.g.extraeffect)+' Generator Power/sec'},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("g")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {
+                        if(player.inf.points.gte(2))return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st-2nd Prestige Dimensions by ' + format(tmp.g.getGenPowerEff)
+                        return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st Prestige Dimension by ' + format(tmp.g.getGenPowerEff);
+                    },
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.g.extra) + ' Extra Generators, which are generating '+format(tmp.g.extraeffect)+' Generator Power/sec'},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {
+                        if(player.inf.points.gte(2))return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st-2nd Prestige Dimensions by ' + format(tmp.g.getGenPowerEff)
+                        return 'You have ' + format(player.g.power) + ' Generator Power, which multiplies 1st Prestige Dimension by ' + format(tmp.g.getGenPowerEff);
+                    },
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.g.extra) + ' Extra Generators, which are generating '+format(tmp.g.extraeffect)+' Generator Power/sec'},
+                    {}
+                ],
+                ["display-text",function(){return "Dimensional Base: "+format(tmp.g.dimensionalBase)}],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.g.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("s", 4)) {
+                    for (let row = 1; row < 5; row++) {
+                        if (canBuyBuyable("g", row * 10 + 1) || canBuyBuyable("g", row * 10 + 2)) return true
+                    }
+                }
+                // Galaxy always gets autobought
+                return false
+            }
+        },
+    },
 	   upgrades: {
             rows: 6,
             cols: 4,
@@ -2589,15 +2737,67 @@ addLayer("t", {
 		let eff = player.t.energy.add(1).pow(exp);
 		return eff;
 	},
-	tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-                    ["display-text",
-                        function() {return 'You have ' + format(player.t.energy) + ' Time Energy, which multiplies Point gain & Prestige Point gain by ' + format(tmp.t.getTimeEff)},
-                        {}],
-					"buyables",
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.t.energy) + ' Time Energy, which multiplies Point gain & Prestige Point gain by ' + format(tmp.t.getTimeEff)},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("t")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.t.energy) + ' Time Energy, which multiplies Point gain & Prestige Point gain by ' + format(tmp.t.getTimeEff)},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.t.energy) + ' Time Energy, which multiplies Point gain & Prestige Point gain by ' + format(tmp.t.getTimeEff)},
+                    {}
+                ],
+                ["display-text",function(){return "Dimensional Base: "+format(tmp.t.dimensionalBase)}],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.t.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("h", 0)) {
+                    for (let row = 1; row < 5; row++) {
+                        if (canBuyBuyable("t", row * 10 + 1) || canBuyBuyable("t", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 	milestones: {
             0: {requirementDescription: "2 time capsules",
                 done() {return player[this.layer].best.gte(2)}, // Used to determine when to give the milestone
@@ -3225,21 +3425,52 @@ addLayer("s", {
                 effectDescription: "You can buy max Space Energy and unlock Space Building 5",
             },
 	},canBuyMax() {return player[this.layer].best.gte(25)},
-	tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					"buyables",["display-text",
-                        function() {return "Space Building Strength: "+format(tmp.s.getStrength)+"<br>"},
-                        {}],
-                    ["display-text",
-                        function() {return 'You have ' + format(tmp.s.getSpace) + ' Space remaining for Space Buildings.'},
-                        {}],
-                    ["display-text",
-                        function() {return 'You have ' + format(player.g.power) + ' Generator Power'},
-                        {}],
-						"milestones",
-                   "upgrades"],
-				    
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "buyables",
+                [
+                    "display-text",
+                    function() {return "Space Building Strength: "+format(tmp.s.getStrength)+"<br>"},
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(tmp.s.getSpace) + ' Space remaining for Space Buildings.'},
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.g.power) + ' Generator Power'},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                if (isAnyUpgradeAvailable("s")) return true
+                if (!hasMilestone("h", 2)) {
+                    for (let b of [11, 12, 13, 14, 15, 21, 22]) {
+                        if (canBuyBuyable("s", b)) return true
+                    }
+                }
+                return false
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "milestones",
+            ]
+        },
+    },
 	getBaseSpace(){
 		let baseSpace = player.s.best.pow(1.1).times(3);
 		if(hasUpgrade("s",31))baseSpace=baseSpace.add(player.s.dim);
@@ -4227,26 +4458,82 @@ addLayer("e", {
 		if(player.h.challenges[32]>=6)player.e.dim6=player.e.dim6.add(tmp.e.buyables[41].effect.mul(diff));
 		if(player.h.challenges[32]>=7)player.e.dim7=player.e.dim7.add(tmp.e.buyables[42].effect.mul(diff));
 	 },
-	tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["buyable",1],
-					["raw-html",function(){
-						var effect="Enhancer Effect 1: Multiply 1st Generator Dimension by "+format(tmp.e.buyables[1].effect[0])+"<br>";
-						effect+="Enhancer Effect 2: Multiply Prestige Point gain by "+format(tmp.e.buyables[1].effect[1])+"<br>";
-						if(player.e.best.gte(100) || (player.inf.points.gte(1) && player.e.best.gte(2)))effect+="Enhancer Effect 3: Add "+format(tmp.e.buyables[1].effect[2])+" to Booster Base<br>";
-						if(player.e.best.gte(1e137))effect+="Enhancer Effect 4: Generator Upgrade 13's base +"+format(tmp.e.buyables[1].effect[3])+"<br>";
-						if(player.e.best.gte("1e1000"))effect+="Enhancer Effect 5: Multiply Booster Boost effect by "+format(tmp.e.buyables[1].effect[4])+"<br>";
-						if(hasUpgrade("e",42))effect+="Enhancer Effect 6: Multiply All Super-Generator Dimensions by "+format(tmp.e.buyables[1].effect[5])+"<br>";
-						if(hasUpgrade("e",43))effect+="Enhancer Effect 7: Multiply Quirk Gain by "+format(tmp.e.buyables[1].effect[6])+"<br>";
-						if(hasUpgrade("e",42))effect+="Enhancer Effect 8: Multiply All Enhance Dimensions by "+format(tmp.e.buyables[1].effect[7])+"<br>";
-						if(hasUpgrade("e",44))effect+="Enhancer Effect 9: Multiply Space Building Strength by "+format(tmp.e.buyables[1].effect[8])+"<br>";
-						return "Enhancer Strength: "+format(tmp.e.getStrength)+"<br>Your "+format(player.e.buyables[1].add(tmp.e.buyables[1].getFreeLevel))+" Enhancers are providing these effects:<br>"+effect}
-					],
-					["display-text",function() {return 'You have ' + format(player.e.power) + ' Enhance Power, which are multiplying Enhancer Strength by ' + format(tmp.e.getPowerEff1) + ', and providing '+ format(tmp.e.getPowerEff2) + ' free Enhancers'},
-                        {}],"buyables",
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["buyable",1],
+                [
+                    "raw-html",
+                    function(){
+                        var effect="Enhancer Effect 1: Multiply 1st Generator Dimension by "+format(tmp.e.buyables[1].effect[0])+"<br>";
+                        effect+="Enhancer Effect 2: Multiply Prestige Point gain by "+format(tmp.e.buyables[1].effect[1])+"<br>";
+                        if(player.e.best.gte(100) || (player.inf.points.gte(1) && player.e.best.gte(2)))effect+="Enhancer Effect 3: Add "+format(tmp.e.buyables[1].effect[2])+" to Booster Base<br>";
+                        if(player.e.best.gte(1e137))effect+="Enhancer Effect 4: Generator Upgrade 13's base +"+format(tmp.e.buyables[1].effect[3])+"<br>";
+                        if(player.e.best.gte("1e1000"))effect+="Enhancer Effect 5: Multiply Booster Boost effect by "+format(tmp.e.buyables[1].effect[4])+"<br>";
+                        if(hasUpgrade("e",42))effect+="Enhancer Effect 6: Multiply All Super-Generator Dimensions by "+format(tmp.e.buyables[1].effect[5])+"<br>";
+                        if(hasUpgrade("e",43))effect+="Enhancer Effect 7: Multiply Quirk Gain by "+format(tmp.e.buyables[1].effect[6])+"<br>";
+                        if(hasUpgrade("e",42))effect+="Enhancer Effect 8: Multiply All Enhance Dimensions by "+format(tmp.e.buyables[1].effect[7])+"<br>";
+                        if(hasUpgrade("e",44))effect+="Enhancer Effect 9: Multiply Space Building Strength by "+format(tmp.e.buyables[1].effect[8])+"<br>";
+                        return "Enhancer Strength: "+format(tmp.e.getStrength)+"<br>Your "+format(player.e.buyables[1].add(tmp.e.buyables[1].getFreeLevel))+" Enhancers are providing these effects:<br>"+effect
+                    }
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.e.power) + ' Enhance Power, which are multiplying Enhancer Strength by ' + format(tmp.e.getPowerEff1) + ', and providing '+ format(tmp.e.getPowerEff2) + ' free Enhancers'},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("e") || (!hasMilestone("h", 1) && canBuyBuyable("e", 1))
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.e.power) + ' Enhance Power, which are multiplying Enhancer Strength by ' + format(tmp.e.getPowerEff1) + ', and providing '+ format(tmp.e.getPowerEff2) + ' free Enhancers'},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.e.power) + ' Enhance Power, which are multiplying Enhancer Strength by ' + format(tmp.e.getPowerEff1) + ', and providing '+ format(tmp.e.getPowerEff2) + ' free Enhancers'},
+                    {}
+                ],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.e.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("h", 1)) {
+                    for (let row = 1; row < 5; row++) {
+                        if (canBuyBuyable("e", row * 10 + 1) || canBuyBuyable("e", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 		upgrades:{
 		rows: 4,
 		cols: 4,
@@ -4669,19 +4956,82 @@ addLayer("sb", {
 			if(player.h.best.gte(1))return false;
 		 return true;
 	    },
-	 	 tabFormat: ["main-display",
-					["display-text",
-                        function() {
-							return 'You have '+format(tmp.sb.getEff)+' effective super-boosters.';},
-                        {}],
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-                        ["display-text",function() {if(hasUpgrade("sb",23))return 'You have ' + format(player.sb.boost) + ' Super-Booster Boosts, which adds Super-Booster base by ' + format(tmp.sb.boostEffect);return ""},
-                        {}],
-						"buyables",
-						"milestones",
-                   "upgrades"],
-				   
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                [
+                    "display-text",
+                    function() {return 'You have '+format(tmp.sb.getEff)+' effective super-boosters.'},
+                    {}
+                ],
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["buyable",1],
+                [
+                    "display-text",
+                    function() {if(hasUpgrade("sb",23))return 'You have ' + format(player.sb.boost) + ' Super-Booster Boosts, which adds Super-Booster base by ' + format(tmp.sb.boostEffect);return ""},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("sb")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                [
+                    "display-text",
+                    function() {return 'You have '+format(tmp.sb.getEff)+' effective super-boosters.'},
+                    {}
+                ],
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(hasUpgrade("sb",23))return 'You have ' + format(player.sb.boost) + ' Super-Booster Boosts, which adds Super-Booster base by ' + format(tmp.sb.boostEffect);return ""},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                [
+                    "display-text",
+                    function() {return 'You have '+format(tmp.sb.getEff)+' effective super-boosters.'},
+                    {}
+                ],
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(hasUpgrade("sb",23))return 'You have ' + format(player.sb.boost) + ' Super-Booster Boosts, which adds Super-Booster base by ' + format(tmp.sb.boostEffect);return ""},
+                    {}
+                ],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.sb.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("h", 5)) {
+                    for (let row = 1; row < 4; row++) {
+                        if (canBuyBuyable("sb", row * 10 + 1) || canBuyBuyable("sb", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 	getEffExp(){
 		let exponent=new Decimal(0.56);
 		if(hasUpgrade("sb",22))exponent=exponent.add(0.01);
@@ -5692,7 +6042,7 @@ addLayer("h", {
 			player.h.buyables[51]=c;
 		},
 	buyables: {
-            rows: 5,
+            rows: 4,
             cols: 2,
             11: {
                 title: "1st Hindrance Dimension", // Optional, displayed at the top in a larger font
@@ -5894,22 +6244,89 @@ addLayer("h", {
                 style: {'height':'222px'},
             },
 	},
-	
-	 	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",
-                        function() {
-							if(player.inf.points.gte(1))return 'You have ' + format(player.h.power) + ' Hindrance Power, which are multiplying Hindrance Spirit gain by '+ format(tmp.h.HPEffect) + '. <br>Reach ' + format(tmp.h.realC52Goal) + ' Hindrance Power to complete \'Impossible?\''+(player.h.challenges[52]?"one more time.":".");
-							if(hasUpgrade("h",32))return 'You have ' + format(player.h.power) + ' Hindrance Power, reach ' + format(tmp.h.realC52Goal) + ' to complete \'Impossible?\' '+(player.h.challenges[52]?"one more time":"");},
-                        {}],
-						["display-text",
-                        function() {if(player.m.unlocked || player.ba.unlocked)return "Hindrance Evolution will reset 'Impossible?' completions, increase the real goal of 'Impossible?', but it will boost the reward of 'Impossible?' and reduce the goal of repeatable challenges except 'Impossible?'.\nHindrance Evolution will be kept on all resets.";return ""},
-                        {}],
-						"buyables",
-						"milestones",
-                   "upgrades",
-				   "challenges"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(player.inf.points.gte(1))return 'You have ' + format(player.h.power) + ' Hindrance Power, which are multiplying Hindrance Spirit gain by '+ format(tmp.h.HPEffect); return ""},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("h")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(player.inf.points.gte(1))return 'You have ' + format(player.h.power) + ' Hindrance Power, which are multiplying Hindrance Spirit gain by '+ format(tmp.h.HPEffect); return ""},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(player.inf.points.gte(1))return 'You have ' + format(player.h.power) + ' Hindrance Power, which are multiplying Hindrance Spirit gain by '+ format(tmp.h.HPEffect); return ""},
+                    {}
+                ],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.h.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("m", 1)) {
+                    for (let row = 1; row < 4; row++) {
+                        if (canBuyBuyable("h", row * 10 + 1) || canBuyBuyable("h", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+        "Challenges": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {if(player.inf.points.gte(1))return 'You have ' + format(player.h.power) + ' Hindrance Power, which are multiplying Hindrance Spirit gain by '+ format(tmp.h.HPEffect); return ""},
+                    {}
+                ],
+                ["display-text",function(){if(hasUpgrade("h",32))return 'Reach ' + format(tmp.h.realC52Goal) + ' Hindrance Power to complete \'Impossible?\' '+(player.h.challenges[52]?"one more time":""); return ""}],
+                ["display-text",function(){if(player.m.unlocked || player.ba.unlocked)return "Hindrance Evolution will reset 'Impossible?' completions, increase the real goal of 'Impossible?', but it will boost the reward of 'Impossible?' and reduce the goal of repeatable challenges except 'Impossible?'.\nHindrance Evolution will be kept on all resets.";return ""}],
+                ["buyable", 51],
+                "challenges",
+            ],
+            unlocked() {
+                return tmp.h.challenges[11].unlocked
+            },
+            shouldNotify() {
+                return (player.h.activeChallenge && canCompleteChallenge("h", player.h.activeChallenge)) || (!hasMilestone("sp", 5) && canBuyBuyable("h", 51))
+            }
+        },
+    },
 	realC52Goal(){
 		if(player.h.buyables[51].mul(10).add(10).lte(player.h.challenges[52]))return new Decimal(Infinity);
 		var ret=new Decimal(player.h.challenges[52]).mul(Decimal.pow(1.97,player.h.buyables[51]));
@@ -6270,16 +6687,41 @@ addLayer("q", {
 			}
 		},
 		
-	tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-					"milestones",
-                    ["blank", "5px"],
-					"buyables",
-                    ["display-text",
-                        function() {return 'You have ' + format(player.q.energy) + ' Quirk Energy, which multiplies All Prestige Dimensions, Generator Power and Space gain by '+ format(tmp.q.quirkEff) },
-                        {}],
-                   "upgrades"],
-				   
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return'You have ' + format(player.q.energy) + ' Quirk Energy, which multiplies All Prestige Dimensions, Generator Power and Space gain by '+ format(tmp.q.quirkEff) },
+                    {}
+                ],
+                "buyables",
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("q")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return'You have ' + format(player.q.energy) + ' Quirk Energy, which multiplies All Prestige Dimensions, Generator Power and Space gain by '+ format(tmp.q.quirkEff) },
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+    },
 				   quirkEff(){
 					   let x=player.q.energy.add(1);
 						if(hasUpgrade("q",31))x=x.pow(2);
@@ -6454,17 +6896,81 @@ addLayer("sg", {
 			layerDataReset("sg",["upgrades"]);
 			player.sg.best=b;
 		},
-	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-                    ["display-text",
-                        function() {return 'You have ' + format(player.sg.power) + ' Super-Generator Power, which multiplies All Generator Dimensions by ' + format(tmp.sg.getSuperGenPowerEff)},
-                        {}],["display-text",
-                        function() {return 'You have ' + format(player.sg.extra) + ' Extra Super-Generators, which are generating '+format(tmp.sg.extraeffect)+' Super-Generator Power/sec'},
-                        {}],
-						"buyables",
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.sg.power) + ' Super-Generator Power, which multiplies All Generator Dimensions by ' + format(tmp.sg.getSuperGenPowerEff)},
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.sg.extra) + ' Extra Super-Generators, which are generating '+format(tmp.sg.extraeffect)+' Super-Generator Power/sec'},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("sg")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.sg.power) + ' Super-Generator Power, which multiplies All Generator Dimensions by ' + format(tmp.sg.getSuperGenPowerEff)},
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.sg.extra) + ' Extra Super-Generators, which are generating '+format(tmp.sg.extraeffect)+' Super-Generator Power/sec'},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.sg.power) + ' Super-Generator Power, which multiplies All Generator Dimensions by ' + format(tmp.sg.getSuperGenPowerEff)},
+                    {}
+                ],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.sg.extra) + ' Extra Super-Generators, which are generating '+format(tmp.sg.extraeffect)+' Super-Generator Power/sec'},
+                    {}
+                ],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.sg.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("sg", 1)) {
+                    for (let row = 1; row < 4; row++) {
+                        if (canBuyBuyable("sg", row * 10 + 1) || canBuyBuyable("sg", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 		upgrades: {
             rows: 4,
             cols: 3,
@@ -6953,15 +7459,66 @@ addLayer("ss", {
                 effectDescription: "You can buy max Subspace Energy",
             },
 		},canBuyMax() {return player[this.layer].best.gte(10)},
-	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-                    ["display-text",
-                        function() {return 'You have ' + format(player.ss.subspace) + ' subspace, which are providing ' + format(tmp.ss.getFreeLevel) + ' Free Space Building 5 and 6 levels, and making space buildings ' + format(tmp.ss.getAddStrength.sub(1).mul(100)) +'% stronger'},
-                        {}],
-						"buyables",
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.ss.subspace) + ' subspace, which are providing ' + format(tmp.ss.getFreeLevel) + ' Free Space Building 5 and 6 levels, and making space buildings ' + format(tmp.ss.getAddStrength.sub(1).mul(100)) +'% stronger'},
+                    {}
+                ],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("ss")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.ss.subspace) + ' subspace, which are providing ' + format(tmp.ss.getFreeLevel) + ' Free Space Building 5 and 6 levels, and making space buildings ' + format(tmp.ss.getAddStrength.sub(1).mul(100)) +'% stronger'},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.ss.subspace) + ' subspace, which are providing ' + format(tmp.ss.getFreeLevel) + ' Free Space Building 5 and 6 levels, and making space buildings ' + format(tmp.ss.getAddStrength.sub(1).mul(100)) +'% stronger'},
+                    {}
+                ],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.sg.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("ba", 0)) {
+                    for (let row = 1; row < 4; row++) {
+                        if (canBuyBuyable("ss", row * 10 + 1) || canBuyBuyable("ss", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 		milestonePopups(){
 		 return !(player.m.unlocked || player.ba.unlocked);
 	    },
@@ -7488,18 +8045,69 @@ addLayer("o", {
 			layerDataReset("o",["upgrades"]);
 			player.o.best=b;
 		},
-	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-                    ["display-text",
-                        function() {return 'You have ' + format(player.o.energy) + ' Solar Energy, which is multiplying Solarity gain and All Solar Dimensions by ' + format(tmp.o.solEnEff) + ', and multiplying All Time Dimensions by ' + format(tmp.o.solEnEff2)},
-                        {}],
-						"buyables",
-						"milestones",
-                        ["display-text",function() {return 'Solar Power: '+format(tmp.o.solPow)}],
-						["row",[["buyable",1],["buyable",2],["buyable",3]]],
-						["row",[["buyable",4],["buyable",5],["buyable",6]]],
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.o.energy) + ' Solar Energy, which is multiplying Solarity gain and All Solar Dimensions by ' + format(tmp.o.solEnEff) + ', and multiplying All Time Dimensions by ' + format(tmp.o.solEnEff2)},
+                    {}
+                ],
+                ["display-text",function() {return 'Solar Power: '+format(tmp.o.solPow)}],
+                ["row",[["buyable",1],["buyable",2],["buyable",3]]],
+                ["row",[["buyable",4],["buyable",5],["buyable",6]]],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("o")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.o.energy) + ' Solar Energy, which is multiplying Solarity gain and All Solar Dimensions by ' + format(tmp.o.solEnEff) + ', and multiplying All Time Dimensions by ' + format(tmp.o.solEnEff2)},
+                    {}
+                ],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                [
+                    "display-text",
+                    function() {return 'You have ' + format(player.o.energy) + ' Solar Energy, which is multiplying Solarity gain and All Solar Dimensions by ' + format(tmp.o.solEnEff) + ', and multiplying All Time Dimensions by ' + format(tmp.o.solEnEff2)},
+                    {}
+                ],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.o.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("m", 0)) {
+                    for (let row = 1; row < 4; row++) {
+                        if (canBuyBuyable("o", row * 10 + 1) || canBuyBuyable("o", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 		milestonePopups(){
 		 return !(player.m.unlocked || player.ba.unlocked);
 	    },
@@ -8113,16 +8721,56 @@ addLayer("m", {
 			player.m.best=b;
 			return;
 		},
-			tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text","Casting a normal spell costs 1 magic. Effect of normal spells are based on your magic and hexes."],
-					"clickables",
-					["display-text",function(){return "You have "+format(player.m.hexes)+" hexes"}],
-					"buyables",
-					"milestones",
-                   "upgrades"],
-		
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text","Casting a normal spell costs 1 magic. Effect of normal spells are based on your magic and hexes."],
+                "clickables",
+                ["display-text",function(){return "You have "+format(player.m.hexes)+" hexes"}],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("m")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.m.hexes)+" hexes"}],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.m.hexes)+" hexes"}],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.m.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("sp", 1)) {
+                    for (let row = 1; row < 2; row++) {
+                        if (canBuyBuyable("m", row * 10 + 1) || canBuyBuyable("m", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 		clickables: {
             rows: 3,
             cols: 2,
@@ -8483,14 +9131,57 @@ addLayer("ba", {
 			player.ba.best=b;
 			return;
 		},
-			tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",function(){return "You have "+format(player.ba.pos)+" positivity, which multiplies all Subspace Dimensions by "+format(tmp.ba.posEff)}],
-					["display-text",function(){return "You have "+format(player.ba.neg)+" negativity, which multiplies Quirk Upgrade 21's effect by "+format(tmp.ba.negEff)}],
-					"buyables",
-					"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.ba.pos)+" positivity, which multiplies all Subspace Dimensions by "+format(tmp.ba.posEff)}],
+                ["display-text",function(){return "You have "+format(player.ba.neg)+" negativity, which multiplies Quirk Upgrade 21's effect by "+format(tmp.ba.negEff)}],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("m")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.ba.pos)+" positivity, which multiplies all Subspace Dimensions by "+format(tmp.ba.posEff)}],
+                ["display-text",function(){return "You have "+format(player.ba.neg)+" negativity, which multiplies Quirk Upgrade 21's effect by "+format(tmp.ba.negEff)}],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.ba.pos)+" positivity, which multiplies all Subspace Dimensions by "+format(tmp.ba.posEff)}],
+                ["display-text",function(){return "You have "+format(player.ba.neg)+" negativity, which multiplies Quirk Upgrade 21's effect by "+format(tmp.ba.negEff)}],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.ba.buyables[11].unlocked
+            },
+            shouldNotify() {
+                if (!hasMilestone("sp", 1)) {
+                    for (let row = 1; row < 3; row++) {
+                        if (canBuyBuyable("ba", row * 10 + 1) || canBuyBuyable("ba", row * 10 + 2)) return true
+                    }
+                }
+                return false
+            }
+        },
+    },
 	buyables: {
             rows: 4,
             cols: 2,
@@ -9040,6 +9731,31 @@ addLayer("ps", {
 		 if(player.sp.unlocked)return false;
 		 return true;
 	 },
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "buyables",
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("ps")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "milestones",
+            ]
+        },
+    },
 	 update(diff){
 		 if(player.sp.best.gte(3)){
 			let target=player.h.points;
@@ -9246,6 +9962,30 @@ addLayer("sp", {
 				effectDisplay() { return format(this.effect())+"x" },
             },
 		},
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("sp")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "milestones",
+            ]
+        },
+    },
 		
 		doReset(l){
 			if(l=="sp" || l=="hs" || l=="n" || l=="l" || l=="i"){return;}
@@ -9667,17 +10407,35 @@ addLayer("hs", {
                 style: {'height':'120px','width':'120px'},
             },
 	},
-	
-			tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["buyable",1],
-					["display-text",function(){return "You have "+format(tmp.hs.usedHS)+" used Hyperspace."}],
-					["buyable",2],
-					"buyables",
-					["display-text",function(){return "Hyper Building Strength: "+format(tmp.hs.getStrength)}],
-					"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["buyable",1],
+                ["display-text",function(){return "You have "+format(tmp.hs.usedHS)+" used Hyperspace."}],
+                ["buyable",2],
+                "buyables",
+                ["display-text",function(){return "Hyper Building Strength: "+format(tmp.hs.getStrength)}],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("ps")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "milestones",
+            ]
+        },
+    },
 	getStrength(){
 		let x=new Decimal(1);
 		if(hasUpgrade("hs",21))x=x.mul(upgradeEffect("hs",21));
@@ -9852,7 +10610,7 @@ addLayer("n", {
 		},
 		
 	buyables: {
-            rows: 4,
+            rows: 3,
             cols: 3,
             11: {
                 title: "1st Purple Dimension", // Optional, displayed at the top in a larger font
@@ -10013,17 +10771,60 @@ addLayer("n", {
 			if(hasUpgrade("p",73))ret.blue=ret.blue.pow(88);
 			return ret;
 		},
-		
-			tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",function(){return "You have "+format(player.n.purpleDust)+" Purple Dust, which are delaying Enhance Upgrade 34's softcap by +"+format(tmp.n.dustEffs.purple)+"."},{"color":"#bd6afc"}],
-					["display-text",function(){return "You have "+format(player.n.blueDust)+" Blue Dust, which are multiplying Super-Booster Boost Effect by "+format(tmp.n.dustEffs.blue)+"."},{"color":"#7569ff"}],
-					["display-text",function(){return "You have "+format(player.n.orangeDust)+" Orange Dust, which are multiplying Solarity Buyables gain and Solar Dimensions by "+format(tmp.n.dustEffs.orange)+"."},{"color":"#ffbd2e"}],
-					"buyables",
-					"milestones",
-                   "upgrades"],
-		
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.n.purpleDust)+" Purple Dust, which are delaying Enhance Upgrade 34's softcap by +"+format(tmp.n.dustEffs.purple)+"."},{"color":"#bd6afc"}],
+                ["display-text",function(){return "You have "+format(player.n.blueDust)+" Blue Dust, which are multiplying Super-Booster Boost Effect by "+format(tmp.n.dustEffs.blue)+"."},{"color":"#7569ff"}],
+                ["display-text",function(){return "You have "+format(player.n.orangeDust)+" Orange Dust, which are multiplying Solarity Buyables gain and Solar Dimensions by "+format(tmp.n.dustEffs.orange)+"."},{"color":"#ffbd2e"}],
+                ["buyable", 41],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("m")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.n.purpleDust)+" Purple Dust, which are delaying Enhance Upgrade 34's softcap by +"+format(tmp.n.dustEffs.purple)+"."},{"color":"#bd6afc"}],
+                ["display-text",function(){return "You have "+format(player.n.blueDust)+" Blue Dust, which are multiplying Super-Booster Boost Effect by "+format(tmp.n.dustEffs.blue)+"."},{"color":"#7569ff"}],
+                ["display-text",function(){return "You have "+format(player.n.orangeDust)+" Orange Dust, which are multiplying Solarity Buyables gain and Solar Dimensions by "+format(tmp.n.dustEffs.orange)+"."},{"color":"#ffbd2e"}],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return "You have "+format(player.n.purpleDust)+" Purple Dust, which are delaying Enhance Upgrade 34's softcap by +"+format(tmp.n.dustEffs.purple)+"."},{"color":"#bd6afc"}],
+                ["display-text",function(){return "You have "+format(player.n.blueDust)+" Blue Dust, which are multiplying Super-Booster Boost Effect by "+format(tmp.n.dustEffs.blue)+"."},{"color":"#7569ff"}],
+                ["display-text",function(){return "You have "+format(player.n.orangeDust)+" Orange Dust, which are multiplying Solarity Buyables gain and Solar Dimensions by "+format(tmp.n.dustEffs.orange)+"."},{"color":"#ffbd2e"}],
+                "buyables",
+            ],
+            glowColor: "green",
+            shouldNotify() {
+                if (true) { // No autobuy yet
+                    for (let row = 1; row < 2; row++) {
+                        for (let col = 1; col < 4; col++) {
+                            if (canBuyBuyable("n", row * 10 + col)) return true
+                        }
+                    }
+                }
+                return false
+            }
+        },
+    },
 	update(diff){
 		 player.n.purpleDust=player.n.purpleDust.add(tmp.n.buyables[11].effect.mul(diff));
 		 player.n.blueDust=player.n.blueDust.add(tmp.n.buyables[12].effect.mul(diff));
@@ -10225,6 +11026,30 @@ addLayer("ma", {
 				style: {"width":"180px","height":"180px"},
 			},
 	},
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("ma")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "milestones",
+            ]
+        },
+    },
 	
 		doReset(l){
 			if(l=="ma"){return;}
@@ -10318,16 +11143,49 @@ addLayer("l", {
                 effectDescription: "Keep all previous layer upgrades/milestones/challenge completions on reset.",
             },
 	},
-	 	 tabFormat: ["main-display",
-                    "prestige-button", "resource-display",
-                    ["blank", "5px"],
-					["display-text",
-                        function() {
-							return 'You have ' + format(player.l.power) + ' Life Power, which multiplies All Magical Dimensions by ' + format(tmp.l.powerEffect);
-						}],
-						"buyables",
-						"milestones",
-                   "upgrades"],
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return 'You have ' + format(player.l.power) + ' Life Power, which multiplies All Magical Dimensions by ' + format(tmp.l.powerEffect);}],
+                "upgrades",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("m")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return 'You have ' + format(player.l.power) + ' Life Power, which multiplies All Magical Dimensions by ' + format(tmp.l.powerEffect);}],
+                "milestones",
+            ]
+        },
+        "Dimensions": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                ["display-text",function(){return 'You have ' + format(player.l.power) + ' Life Power, which multiplies All Magical Dimensions by ' + format(tmp.l.powerEffect);}],
+                "buyables",
+            ],
+            glowColor: "green",
+            unlocked() {
+                return tmp.l.buyables[11].unlocked
+            },
+            shouldNotify() {
+                return canBuyBuyable("l", 11)
+            }
+        },
+    },
 	powerEffect(){
 		let ret=player.l.power.add(1).pow(500);
 		if(hasUpgrade("l",13))ret=ret.pow(3);
@@ -10465,6 +11323,30 @@ addLayer("i", {
                 effectDescription: "Imperium Brick resets nothing.",
             },
 	},
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "buyables",
+            ],
+            glowColor: "red",
+            shouldNotify() {
+                return isAnyUpgradeAvailable("i")
+            }
+        },
+        "Milestones": {
+            content: [
+                "main-display",
+                "prestige-button",
+                "resource-display",
+                ["blank", "5px"],
+                "milestones",
+            ]
+        },
+    },
 		doReset(l){
 			if(l=="sp" || l=="hs" || l=="n" || l=="l" || l=="i"){return;}
 			if(l=="inf"){
