@@ -12,12 +12,15 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "1.0.6+tmt-modern-plus-1.0.0",
+	num: "1.0.6+tmt-modern-plus-1.0.1",
 	name: "The Imperium Update",
 }
 
 let changelog = `
 <h1>TMT Modern Plus Changelog:</h1><br>
+	<h3>v1.0.1</h3><br>
+	- Upgraded to TMT 2.6.2.2<br>
+	- Fix H Challenges tab glow not always showing up as a node glow<br>
 	<h3>v1.0.0</h3><br>
 	- Upgraded to TMT 2.6.1<br>
 	- Added subtabs to most layers<br>
