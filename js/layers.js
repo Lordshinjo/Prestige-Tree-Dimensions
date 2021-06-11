@@ -6319,6 +6319,7 @@ addLayer("h", {
                 ["buyable", 51],
                 "challenges",
             ],
+            glowColor: "red",
             unlocked() {
                 return tmp.h.challenges[11].unlocked
             },
